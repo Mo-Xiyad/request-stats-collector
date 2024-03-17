@@ -1,3 +1,19 @@
+# How to run the program
+
+1. Clone the repository
+2. Run the following command to install the required packages:
+   ```bash
+   npm install
+   ```
+3. Run the following command to build the project:
+   ```bash
+    npm run build
+   ```
+4. Run the following command to start the program:
+   ```bash
+    npm start
+   ```
+
 # Task abstraction:
 
 - [ ] **Handle user input**:
