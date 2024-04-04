@@ -48,7 +48,7 @@ async function getUserInput() {
 }
 let totalCount = 0;
 let responseTimes: number[] = [];
-let histogram: number[] = new Array(5).fill(0); // there is no limit for the histogram size(not provided in the question)
+let histogram: number[] = new Array(10).fill(0);
 
 async function makeRequest() {
   let tries = 0;
@@ -59,9 +59,19 @@ async function makeRequest() {
         signal: AbortSignal.timeout(5000)
       });
       if (!response.ok) {
-        // if this fails im not sure if i should retry or not
-        // for now i will just throw an error
-        // this error could be a connection error or a 404 or 500 error
+        if (response.status === 429) {
+          console.log('Rate limit exceeded. Retrying...');
+          await sleep();
+          return;
+        }
+        if (response.status === 404) {
+          console.error('404 Not Found');
+          return;
+        }
+        if (response.status === 500) {
+          console.error('500 Internal Server Error');
+          return;
+        }
         throw new Error(response.statusText);
       }
       const end = Date.now();
@@ -69,6 +79,13 @@ async function makeRequest() {
       responseTimes.push(responseTime);
       updateHistogram(responseTime, histogram);
       totalCount++;
+      console.log(`📍 Request ${totalCount} took ${responseTime}ms`);
+
+      if (totalCount % 10 === 0) {
+        console.log('Current Histogram 📊:', histogram);
+        console.log('Response times:', responseTimes);
+      }
+
       return;
     } catch (error) {
       console.error(error);
@@ -79,8 +96,6 @@ async function makeRequest() {
 }
 
 function updateHistogram(responseTime: number, histogram: number[]) {
-  // there is no specific information on how to calculate the histogram so I am assuming that we need to divide the response time by 100 and then take the floor of it
-  // and the reason why im dividing it by 100 is because the response time is in milliseconds and the histogram is in 100ms pol
   const binIndex = Math.min(
     Math.floor(responseTime / 100),
     histogram.length - 1
@@ -103,7 +118,7 @@ async function run() {
       }
     } else {
       // if i don't limit this will be an infinite loop
-      while (totalCount < 4) {
+      while (true) {
         await makeRequest();
         await sleep();
       }
@@ -111,7 +126,7 @@ async function run() {
 
     console.log('Total requests made:', totalCount);
     console.log('Response times:', responseTimes);
-    console.log('Histogram:', histogram);
+    console.log('Histogram 📊:', histogram);
   } catch (error) {
     console.error(error);
   } finally {
@@ -123,6 +138,7 @@ run();
 
 process.stdin.on('keypress', (_str, key) => {
   if (key.ctrl && key.name === 'c') {
+    console.log('Histogram 📊:', histogram);
     process.exit();
   }
 });

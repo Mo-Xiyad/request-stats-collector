@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc index.ts",
+    "dev": " yarn build && node index.js",
     "start": "node index.js"
   },
   "keywords": [],
