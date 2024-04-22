@@ -117,7 +117,6 @@ async function run() {
         await sleep();
       }
     } else {
-      // if i don't limit this will be an infinite loop
       while (true) {
         await makeRequest();
         await sleep();
